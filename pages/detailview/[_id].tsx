@@ -23,6 +23,8 @@ import {
   EditTxt
 } from "@components/pageComp/detailview/styles";
 import { useProdDetail } from "@src/hooks/api/useProducts/useProductDetail";
+import parse from "html-react-parser";
+import LazyLoad from "react-lazyload";
 
 export interface IDetail {
   item: IProduct;
@@ -35,6 +37,19 @@ const DetailView = ({ item }: IDetail) => {
 
   const { data } = useQuery("detail", () => item);
   const { data: data2 } = useProdDetail(String(_id));
+
+  const parseOptions = {
+    replace: (domNode: any) => {
+      if (domNode.name === "img") {
+        const { src, alt } = domNode.attribs;
+        return (
+          <LazyLoad once>
+            <img src={src} alt={alt} />
+          </LazyLoad>
+        );
+      }
+    }
+  };
 
   return (
     <>
@@ -55,7 +70,7 @@ const DetailView = ({ item }: IDetail) => {
               />
 
               <Content>
-                <EditTxt dangerouslySetInnerHTML={{ __html: data?.body }} />
+                <EditTxt>{parse(data?.body || "", parseOptions)}</EditTxt>
                 {data.isvod ? (
                   <Curriculum data={data} />
                 ) : (

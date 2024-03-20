@@ -38,7 +38,7 @@ export default function SignIn() {
   }, [error]);
 
   if (isProvidersLoading || isCsrfTokenLoading) {
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   return (
