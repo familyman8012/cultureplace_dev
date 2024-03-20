@@ -9,7 +9,7 @@ import { Fragment, useCallback, useEffect, useState } from "react";
 import "rc-pagination/assets/index.css";
 import Pagination from "rc-pagination";
 import CardSkeleton from "@components/elements/Card/CardSkeleton";
-import { GetServerSideProps, GetStaticPaths, GetStaticProps } from "next";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { dbConnect, Product } from "../../pages/api";
 import { dehydrate, QueryClient, useQuery } from "react-query";
 import { CategoryLink } from "@components/layouts/Head";
@@ -92,17 +92,17 @@ function Oneday({ SsrData }: { SsrData: IProductList }) {
 
 export default Oneday;
 
-// export const getStaticPaths: GetStaticPaths = async () => {
-//   const paths = CategoryLink.map(item => ({
-//     params: { genre: String(item.url) }
-//   }));
-//   return {
-//     paths,
-//     fallback: true // --> false 시 1,2,3외에는 404
-//   };
-// };
+export const getStaticPaths: GetStaticPaths = async () => {
+  const paths = CategoryLink.map(item => ({
+    params: { genre: String(item.url) }
+  }));
+  return {
+    paths,
+    fallback: true
+  };
+};
 
-export const getServerSideProps: GetServerSideProps = async ctx => {
+export const getStaticProps: GetStaticProps = async ctx => {
   await dbConnect();
 
   const genre = ctx.params?.genre;
@@ -116,14 +116,13 @@ export const getServerSideProps: GetServerSideProps = async ctx => {
       .lean()
   );
 
-  // console.log("result result result", result);
-
   return {
     props: {
       SsrData: {
         products: JSON.parse(JSON.stringify(result)),
         productsCount: 20
       }
-    }
+    },
+    revalidate: 60 // 60초마다 페이지 재생성
   };
 };

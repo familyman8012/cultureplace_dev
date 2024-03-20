@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { GetServerSideProps } from "next";
+import { GetStaticProps, GetStaticPaths } from "next";
 import { dbConnect, Notice } from "../../pages/api";
 import { useRouter } from "next/router";
 import { dehydrate, QueryClient } from "react-query";
@@ -22,7 +22,7 @@ function DetailView() {
   const { status, data, error, isFetching } = useNotice(String(_id));
 
   const createTime = useMemo(
-    () => dayjs(data?.updatedAt).format(`YYYY.MM.DD`),
+    () => dayjs(data?.updatedAt).format("YYYY.MM.DD"),
     [data?.updatedAt]
   );
 
@@ -55,15 +55,21 @@ function DetailView() {
     </Layout>
   );
 }
+export const getStaticPaths: GetStaticPaths = async () => {
+  await dbConnect();
 
-// export const getStaticPaths: GetStaticPaths = async () => {
-//   return {
-//     paths: [{ params: { _id: "6172e0d7e8fef6005983ea78" } }],
-//     fallback: true // --> false 시 1,2,3외에는 404
-//   };
-// };
+  const result = await Notice.find({}, { _id: 1 }).lean();
+  const paths = result.map(item => ({
+    params: { _id: item._id.toString() }
+  }));
 
-export const getServerSideProps: GetServerSideProps = async ctx => {
+  return {
+    paths,
+    fallback: true
+  };
+};
+
+export const getStaticProps: GetStaticProps = async ctx => {
   await dbConnect();
 
   const _id = ctx.params?._id;
@@ -71,6 +77,12 @@ export const getServerSideProps: GetServerSideProps = async ctx => {
     { _id },
     { createdAt: false, updatedAt: false }
   ).lean();
+
+  if (!result.length) {
+    return {
+      notFound: true
+    };
+  }
 
   const data = JSON.parse(JSON.stringify(result[0]));
 
