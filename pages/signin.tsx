@@ -50,13 +50,18 @@ export default function SignIn() {
             <h1>CULTURE PLACE</h1>
             <h2>로그인</h2>
             <div>
-              <SocialLogin providers={providers} csrfToken={csrfToken} />
+              {providers && csrfToken && (
+                <SocialLogin providers={providers} csrfToken={csrfToken} />
+              )}
+
               <form method="post" action="/api/auth/callback/credentials">
-                <input
-                  name="csrfToken"
-                  type="hidden"
-                  defaultValue={csrfToken}
-                />
+                {csrfToken && (
+                  <input
+                    name="csrfToken"
+                    type="hidden"
+                    defaultValue={csrfToken}
+                  />
+                )}
                 <label>
                   <div className="tit">이메일</div>
                   <div>
