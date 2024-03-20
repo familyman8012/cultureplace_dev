@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { GetServerSideProps } from "next";
 import { signIn } from "next-auth/client";
 import Link from "next/link";
 import { getProviders } from "next-auth/client";
@@ -7,7 +6,6 @@ import { useRouter } from "next/router";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { toast, ToastContainer } from "react-toastify";
-import { ISignIn } from "../signin";
 import { RegisterSeo } from "@components/elements/CommonSeo";
 import Layout from "@components/layouts";
 import SocialLogin from "@components/modules/SocialLogin";
@@ -15,8 +13,9 @@ import { IUser } from "@src/typings/db";
 import RegisterForm from "@components/pageComp/register/styles";
 import { ErrorTxt } from "pages/admin/product/styles";
 import "react-toastify/dist/ReactToastify.css";
+import { useQuery } from "react-query";
 
-export default function Register({ providers, csrfToken }: ISignIn) {
+export default function Register() {
   const {
     query: { callbackUrl }
   } = useRouter();
@@ -28,12 +27,15 @@ export default function Register({ providers, csrfToken }: ISignIn) {
     watch,
     formState: { errors },
     handleSubmit
-  } = useForm(); // useForm({ mode: "onChange" });
-  // console.log(watch("email"));
+  } = useForm();
 
   const userpwdConfirm = watch("userpwd");
 
   const [loading, setLoading] = useState(false);
+
+  const { data: providers, isLoading } = useQuery("providers", () =>
+    getProviders()
+  );
 
   const onSubmit = async (data: IUser) => {
     setLoading(true);
@@ -77,6 +79,10 @@ export default function Register({ providers, csrfToken }: ISignIn) {
 
     setLoading(false);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Layout>
@@ -259,18 +265,10 @@ export default function Register({ providers, csrfToken }: ISignIn) {
             </Link>
             , 내용을 확인하였고 동의합니다.
           </div>
-          <SocialLogin providers={providers} csrfToken={csrfToken} />
+          {providers && <SocialLogin providers={providers} />}
         </div>
       </RegisterForm>
       <ToastContainer />
     </Layout>
   );
 }
-
-export const getServerSideProps: GetServerSideProps = async context => {
-  const providers = await getProviders();
-
-  return {
-    props: { providers }
-  };
-};
