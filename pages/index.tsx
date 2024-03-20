@@ -22,7 +22,7 @@ const Home = ({ SsrData }: ISSR) => {
   const productsData = data?.products;
 
   const genreTitle = [
-    { title: "내가 만든 작품이 전시되는 날", url: "/view/art" },
+    { title: "내가 만든 작품이 전시되는 날!", url: "/view/art" },
 
     {
       title: "#최고의 사운드, 인생음악, #작곡, #작사, #댄스",
