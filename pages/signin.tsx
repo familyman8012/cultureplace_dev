@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import Link from "next/link";
 import { getProviders, getCsrfToken, CtxOrReq } from "next-auth/client";
 import { useRouter } from "next/router";
+import { useQuery } from "react-query";
 import { SignInSeo } from "@components/elements/CommonSeo";
 import SocialLogin from "../components/modules/SocialLogin";
 import MobMenu from "@components/layouts/MobMenu";
@@ -15,13 +17,30 @@ export interface ISignIn {
   csrfToken: string;
 }
 
-export default function SignIn({ providers, csrfToken }: ISignIn) {
+export default function SignIn() {
   const router = useRouter();
   const { error } = router?.query;
 
-  if (typeof window !== "undefined" && error === "CredentialsSignin") {
-    alert("아이디와 비밀번호를 확인해주세요.");
+  const { data: providers, isLoading: isProvidersLoading } = useQuery(
+    "providers",
+    () => getProviders()
+  );
+
+  const { data: csrfToken, isLoading: isCsrfTokenLoading } = useQuery(
+    "csrfToken",
+    () => getCsrfToken()
+  );
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && error === "CredentialsSignin") {
+      alert("아이디와 비밀번호를 확인해주세요.");
+    }
+  }, [error]);
+
+  if (isProvidersLoading || isCsrfTokenLoading) {
+    return <div>Loading...</div>;
   }
+
   return (
     <>
       <SignInSeo />
@@ -86,15 +105,4 @@ export default function SignIn({ providers, csrfToken }: ISignIn) {
       <MobMenu />
     </>
   );
-}
-
-// This is the recommended way for Next.js 9.3 or newer
-export async function getServerSideProps(context: CtxOrReq | undefined) {
-  const providers = await getProviders();
-  return {
-    props: {
-      csrfToken: await getCsrfToken(context),
-      providers
-    }
-  };
 }
